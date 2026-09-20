@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <RootNamespace>CleanedMainMenu</RootNamespace>
+    <AssemblyName>CleanedMainMenu</AssemblyName>
+
+    <Version>0.1.0</Version>
+    <Title>Valheim Cleaned Main Menu</Title>
+    <Authors>EwigLicht</Authors>
+    <Description>Cleans up the main menu in Valheim.</Description>
+    <Copyright>Copyright © 2026 EwigLicht. All rights reserved.</Copyright>
+
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+
+    <ModInstallPath>E:\Games\Steam\steamapps\common\Valheim\BepInEx\plugins\</ModInstallPath>
+
+    <NoWarn>$(NoWarn);MSB3245</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JotunnLib" Version="2.30.1" />
+  </ItemGroup>
+
+  <Target Name="CleanExtraDLLs" AfterTargets="Build">
+    <ItemGroup>
+      <ExtraDlls Include="$(TargetDir)*.dll" Exclude="$(TargetDir)$(AssemblyName).dll" />
+    </ItemGroup>
+    <Delete Files="@(ExtraDlls)" />
+  </Target>
+
+  <Target Name="CopyToPlugins" AfterTargets="CleanExtraDLLs">
+    <MakeDir Directories="$(ModInstallPath)" />
+    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(ModInstallPath)"
+      SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>
