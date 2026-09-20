@@ -1,3 +1,3 @@
 # Valheim Cleaned Main Menu
 
-Cleans up the main menu in Valheim.
+Show/hide each element on the main menu. Customizable logo.
