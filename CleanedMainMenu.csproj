@@ -19,7 +19,8 @@
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
 
-    <ModInstallPath>E:\Games\Steam\steamapps\common\Valheim\BepInEx\plugins\</ModInstallPath>
+    <GameInstallPath>E:\Games\Steam\steamapps\common\Valheim\</GameInstallPath>
+    <ModInstallPath>$(GameInstallPath)\BepInEx\plugins\</ModInstallPath>
     <PackageInstallPath>$(MSBuildProjectDirectory)\package\BepInEx\plugins\</PackageInstallPath>
 
     <NoWarn>$(NoWarn);MSB3245</NoWarn>
@@ -27,6 +28,11 @@
 
   <ItemGroup>
     <PackageReference Include="JotunnLib" Version="2.30.1" />
+
+    <Reference Include="assembly_valheim">
+      <HintPath>$(GameInstallPath)\valheim_Data\Managed\assembly_valheim.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
 
   <Target Name="CleanExtraDLLs" AfterTargets="Build">
