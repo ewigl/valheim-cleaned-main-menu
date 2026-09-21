@@ -1,9 +1,10 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace CleanedMainMenu
@@ -18,6 +19,9 @@ namespace CleanedMainMenu
 
         private static readonly string ConfigDir = Path.Combine(Paths.ConfigPath, "CleanedMainMenu");
         private static readonly string CustomLogoPath = Path.Combine(ConfigDir, "logo.png");
+
+        private static readonly Harmony Harmony = new(PluginGUID);
+        private static Sprite cachedCustomLogo;
 
         public class UIElement
         {
@@ -43,11 +47,7 @@ namespace CleanedMainMenu
             }
         }
 
-        public static UIElement[] UIElements { get; private set; }
-
-        private GameObject menuRoot;
-        private bool isMenuScene;
-        private bool isCached;
+        public static Dictionary<string, UIElement> UIElements { get; } = new Dictionary<string, UIElement>();
 
         private void Awake()
         {
@@ -57,19 +57,19 @@ namespace CleanedMainMenu
             }
 
             InitUIElements();
+            Harmony.PatchAll();
 
-            SceneManager.sceneLoaded += OnSceneLoaded;
             Logger.LogInfo($"{PluginName} v{PluginVersion} Loaded.");
         }
 
         private void OnDestroy()
         {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
+            Harmony.UnpatchSelf();
         }
 
         private void InitUIElements()
         {
-            UIElements = new[]
+            var elements = new[]
             {
                 new UIElement("HideLogo",              "Hide Logo",                 "Main",         "Logo",                            "Hide the Valheim logo",               100),
                 new UIElement("HideMenuList",          "Hide Menus",                "Main",         "MenuList",                        "Are you sure?",                       90),
@@ -84,7 +84,7 @@ namespace CleanedMainMenu
                 new UIElement("HideVersionText",       "Hide Version Text",         "Bottom Right", "version_text",                    "Hide game version text",              50, true),
             };
 
-            foreach (var elem in UIElements)
+            foreach (var elem in elements)
             {
                 var configDesc = new ConfigDescription(elem.Description, null, new ConfigurationManagerAttributes
                 {
@@ -94,123 +94,30 @@ namespace CleanedMainMenu
 
                 elem.Config = Config.Bind(elem.Section, elem.Key, elem.DefaultValue, configDesc);
                 elem.Config.SettingChanged += (s, a) => ApplySingleElement(elem);
+
+                UIElements[elem.Key] = elem;
             }
         }
 
-        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        [HarmonyPatch(typeof(FejdStartup), "Start")]
+        public static class FejdStartup_Start_Patch
         {
-            isMenuScene = scene.name == "mainmenu" || scene.name.Equals("start", StringComparison.OrdinalIgnoreCase);
-            menuRoot = null;
-            isCached = false;
-
-            foreach (var elem in UIElements)
+            [HarmonyPostfix]
+            public static void Postfix(FejdStartup __instance)
             {
-                elem.GameObject = null;
-            }
-        }
+                if (__instance == null || __instance.m_mainMenu == null) return;
 
-        private void Update()
-        {
-            if (!isMenuScene) return;
-
-            if (!isCached)
-            {
-                menuRoot ??= GameObject.Find("StartGUI/Menu") ?? GameObject.Find("Menu");
-                if (menuRoot == null) return;
+                GameObject menuRoot = __instance.m_mainMenu;
 
                 CacheReferences(menuRoot);
-                isCached = true;
                 ApplyAllElements();
-
                 TryApplyCustomLogo();
-            }
-
-            foreach (var elem in UIElements)
-            {
-                if (elem.Config.Value && elem.GameObject != null && elem.GameObject.activeSelf)
-                {
-                    elem.GameObject.SetActive(false);
-                }
-            }
-        }
-
-        private void TryApplyCustomLogo()
-        {
-            if (!File.Exists(CustomLogoPath))
-            {
-                return;
-            }
-
-            foreach (var elem in UIElements)
-            {
-                if (elem.Key == "HideLogo" && elem.GameObject != null)
-                {
-                    Transform logoRoot = elem.GameObject.transform;
-                    Image targetLogoImage = null;
-
-                    for (int i = 0; i < logoRoot.childCount; i++)
-                    {
-                        Transform child = logoRoot.GetChild(i);
-
-                        if (!child.gameObject.activeSelf) continue;
-                        if (child.name.IndexOf("Embers", StringComparison.OrdinalIgnoreCase) >= 0) continue;
-
-                        Image img = child.GetComponent<Image>();
-                        if (img != null)
-                        {
-                            targetLogoImage = img;
-                            break;
-                        }
-                    }
-
-                    if (targetLogoImage != null)
-                    {
-                        try
-                        {
-                            Sprite customSprite = Jotunn.Utils.AssetUtils.LoadSprite(CustomLogoPath);
-                            if (customSprite != null)
-                            {
-                                targetLogoImage.sprite = customSprite;
-                                targetLogoImage.overrideSprite = customSprite;
-                                targetLogoImage.preserveAspect = true;
-
-                                Transform logoTransform = targetLogoImage.transform;
-                                int disabledSnowCount = 0;
-
-                                for (int j = 0; j < logoTransform.childCount; j++)
-                                {
-                                    Transform innerChild = logoTransform.GetChild(j);
-
-                                    if (innerChild.name.IndexOf("Snow", StringComparison.OrdinalIgnoreCase) >= 0)
-                                    {
-                                        innerChild.gameObject.SetActive(false);
-                                        disabledSnowCount++;
-                                    }
-                                }
-
-                                Logger.LogInfo($"[Cleaned Main Menu] Custom logo applied. Disabled {disabledSnowCount} Snow effect nodes.");
-                            }
-                            else
-                            {
-                                Logger.LogError($"[Cleaned Main Menu] Loaded image file, but failed to create Sprite: {CustomLogoPath}");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.LogError($"[Cleaned Main Menu] Exception replacing logo: {ex.Message}");
-                        }
-                        return;
-                    }
-
-                    Logger.LogWarning("[Cleaned Main Menu] Could not locate active main logo node.");
-                    break;
-                }
             }
         }
 
         private static void CacheReferences(GameObject root)
         {
-            foreach (var elem in UIElements)
+            foreach (var elem in UIElements.Values)
             {
                 Transform target = root.transform.Find(elem.Path) ?? root.transform.Find(elem.Key);
                 elem.GameObject = target?.gameObject;
@@ -219,13 +126,87 @@ namespace CleanedMainMenu
 
         public static void ApplyAllElements()
         {
-            foreach (var elem in UIElements)
+            foreach (var elem in UIElements.Values)
             {
                 ApplySingleElement(elem);
             }
         }
 
-        public static void ApplySingleElement(UIElement elem) => elem.GameObject?.SetActive(!elem.Config.Value);
+        public static void ApplySingleElement(UIElement elem)
+        {
+            elem.GameObject?.SetActive(!elem.Config.Value);
+        }
+
+        private static void TryApplyCustomLogo()
+        {
+            if (!File.Exists(CustomLogoPath)) return;
+
+            if (!UIElements.TryGetValue("HideLogo", out var logoElem) || logoElem.GameObject == null)
+            {
+                return;
+            }
+
+            Transform logoRoot = logoElem.GameObject.transform;
+            Image targetLogoImage = null;
+
+            for (int i = 0; i < logoRoot.childCount; i++)
+            {
+                Transform child = logoRoot.GetChild(i);
+                if (!child.gameObject.activeSelf) continue;
+                if (child.name.IndexOf("Embers", StringComparison.OrdinalIgnoreCase) >= 0) continue;
+
+                if (child.TryGetComponent<Image>(out var img))
+                {
+                    targetLogoImage = img;
+                    break;
+                }
+            }
+
+            if (targetLogoImage != null)
+            {
+                try
+                {
+                    if (cachedCustomLogo == null)
+                    {
+                        cachedCustomLogo = Jotunn.Utils.AssetUtils.LoadSprite(CustomLogoPath);
+                    }
+
+                    if (cachedCustomLogo != null)
+                    {
+                        targetLogoImage.sprite = cachedCustomLogo;
+                        targetLogoImage.overrideSprite = cachedCustomLogo;
+                        targetLogoImage.preserveAspect = true;
+
+                        Transform logoTransform = targetLogoImage.transform;
+                        int disabledSnowCount = 0;
+
+                        for (int j = 0; j < logoTransform.childCount; j++)
+                        {
+                            Transform innerChild = logoTransform.GetChild(j);
+                            if (innerChild.name.IndexOf("Snow", StringComparison.OrdinalIgnoreCase) >= 0)
+                            {
+                                innerChild.gameObject.SetActive(false);
+                                disabledSnowCount++;
+                            }
+                        }
+
+                        Jotunn.Logger.LogInfo($"[Cleaned Main Menu] Custom logo applied. Disabled {disabledSnowCount} Snow effect nodes.");
+                    }
+                    else
+                    {
+                        Jotunn.Logger.LogError($"[Cleaned Main Menu] Loaded image file, but failed to create Sprite: {CustomLogoPath}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Jotunn.Logger.LogError($"[Cleaned Main Menu] Exception replacing logo: {ex.Message}");
+                }
+            }
+            else
+            {
+                Jotunn.Logger.LogWarning("[Cleaned Main Menu] Could not locate active main logo node.");
+            }
+        }
     }
 
     internal class ConfigurationManagerAttributes
