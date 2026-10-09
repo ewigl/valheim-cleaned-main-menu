@@ -15,7 +15,7 @@ namespace CleanedMainMenu
     {
         public const string PluginGUID = "ewigl.ValheimCleanedMainMenu";
         public const string PluginName = "Cleaned Main Menu";
-        public const string PluginVersion = "0.1.0";
+        public const string PluginVersion = "0.1.2";
 
         private static readonly string ConfigDir = Path.Combine(Paths.ConfigPath, "CleanedMainMenu");
         private static readonly string CustomLogoPath = Path.Combine(ConfigDir, "logo.png");

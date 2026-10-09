@@ -7,7 +7,7 @@
     <RootNamespace>CleanedMainMenu</RootNamespace>
     <AssemblyName>CleanedMainMenu</AssemblyName>
 
-    <Version>0.1.0</Version>
+    <Version>0.1.2</Version>
     <Title>Valheim Cleaned Main Menu</Title>
     <Authors>EwigLicht</Authors>
     <Description>Cleans up the main menu in Valheim.</Description>
