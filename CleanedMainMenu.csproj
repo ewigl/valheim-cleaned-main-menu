@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JotunnLib" Version="2.30.1" />
+    <PackageReference Include="JotunnLib" Version="2.30.2" />
 
     <Reference Include="assembly_valheim">
       <HintPath>$(GameInstallPath)\valheim_Data\Managed\assembly_valheim.dll</HintPath>
@@ -44,10 +44,8 @@
 
   <Target Name="CopyToPlugins" AfterTargets="CleanExtraDLLs">
     <MakeDir Directories="$(ModInstallPath);$(PackageInstallPath)" />
-    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(ModInstallPath)"
-      SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(PackageInstallPath)"
-      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(ModInstallPath)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(PackageInstallPath)" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>
