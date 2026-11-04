@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>10.0</LangVersion>
     <RootNamespace>CleanedMainMenu</RootNamespace>
     <AssemblyName>CleanedMainMenu</AssemblyName>
 
-    <Version>0.1.2</Version>
+    <Version>1.0.1</Version>
     <Title>Valheim Cleaned Main Menu</Title>
     <Authors>EwigLicht</Authors>
     <Description>Cleans up the main menu in Valheim.</Description>
@@ -27,11 +27,31 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JotunnLib" Version="2.30.2" />
-
     <Reference Include="assembly_valheim">
       <HintPath>$(GameInstallPath)\valheim_Data\Managed\assembly_valheim.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="BepInEx">
+      <HintPath>$(GameInstallPath)\BepInEx\core\BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="HarmonyLib">
+      <HintPath>$(GameInstallPath)\BepInEx\core\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="Jotunn">
+      <HintPath>$(GameInstallPath)\BepInEx\plugins\Jotunn.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(GameInstallPath)\valheim_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(GameInstallPath)\valheim_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(GameInstallPath)\valheim_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -44,8 +64,10 @@
 
   <Target Name="CopyToPlugins" AfterTargets="CleanExtraDLLs">
     <MakeDir Directories="$(ModInstallPath);$(PackageInstallPath)" />
-    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(ModInstallPath)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(PackageInstallPath)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(ModInstallPath)"
+      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(PackageInstallPath)"
+      SkipUnchangedFiles="true" />
   </Target>
 
 </Project>
