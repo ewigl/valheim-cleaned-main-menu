@@ -24,29 +24,30 @@
     <PackageInstallPath>$(MSBuildProjectDirectory)\package\BepInEx\plugins\</PackageInstallPath>
   </PropertyGroup>
 
+  <ItemDefinitionGroup>
+    <Reference>
+      <Private>false</Private>
+    </Reference>
+  </ItemDefinitionGroup>
+
   <ItemGroup>
     <Reference Include="assembly_valheim">
       <HintPath>$(GameInstallPath)\valheim_Data\Managed\assembly_valheim.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>$(GameInstallPath)\BepInEx\core\BepInEx.dll</HintPath>
-      <Private>false</Private>
     </Reference>
     <Reference Include="HarmonyLib">
       <HintPath>$(GameInstallPath)\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Jotunn">
       <HintPath>$(GameInstallPath)\BepInEx\plugins\Jotunn.dll</HintPath>
-      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>$(GameInstallPath)\valheim_Data\Managed\UnityEngine.dll</HintPath>
-      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>$(GameInstallPath)\valheim_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>$(GameInstallPath)\valheim_Data\Managed\UnityEngine.UI.dll</HintPath>
